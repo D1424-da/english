@@ -23,6 +23,10 @@ package-lock.json
 *~
 .DS_Store
 
+# Database
+*.db
+*.sqlite3
+
 # Python
 __pycache__/
 *.py[cod]
