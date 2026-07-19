@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Results({ result, onBack }) {
+export default function Results({ result, onBack, onDashboard }) {
   const { overall_score, correct_count, total_questions, unit_scores, weak_units, recommendations } = result
 
   const scoreClass = overall_score >= 80 ? 'high' : overall_score >= 50 ? 'mid' : 'low'
@@ -72,10 +72,14 @@ export default function Results({ result, onBack }) {
         ))}
       </div>
 
-      <button className="btn btn-primary" style={{ width: '100%', marginTop: 8, marginBottom: 40 }}
-        onClick={onBack}>
-        ホームに戻る
-      </button>
+      <div style={{ display: 'flex', gap: 12, marginTop: 8, marginBottom: 40 }}>
+        <button className="btn btn-primary" style={{ flex: 1 }} onClick={onDashboard}>
+          学習履歴を見る
+        </button>
+        <button className="btn btn-secondary" style={{ flex: 1 }} onClick={onBack}>
+          ホームに戻る
+        </button>
+      </div>
     </>
   )
 }

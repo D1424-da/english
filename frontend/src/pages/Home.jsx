@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { createUser, startDiagnosis } from '../api'
 
-export default function Home({ userId, setUserId, onStartDiagnosis }) {
+export default function Home({ userId, setUserId, onStartDiagnosis, onGoDashboard }) {
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [grade, setGrade] = useState('high2')
@@ -134,9 +134,13 @@ export default function Home({ userId, setUserId, onStartDiagnosis }) {
               所要時間：約10〜15分
             </p>
             {error && <p style={{ color: 'var(--danger)', marginBottom: 12 }}>{error}</p>}
-            <button className="btn btn-primary" style={{ width: '100%', fontSize: '1.1rem', padding: '16px' }}
+            <button className="btn btn-primary" style={{ width: '100%', fontSize: '1.1rem', padding: '16px', marginBottom: 10 }}
               onClick={handleStartDiagnosis} disabled={loading}>
               {loading ? '準備中...' : '診断スタート'}
+            </button>
+            <button className="btn btn-secondary" style={{ width: '100%' }}
+              onClick={onGoDashboard}>
+              学習履歴を見る
             </button>
           </div>
 

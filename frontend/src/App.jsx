@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import Home from './pages/Home'
 import Diagnosis from './pages/Diagnosis'
 import Results from './pages/Results'
+import Dashboard from './pages/Dashboard'
+import { startDiagnosis } from './api'
 
 export default function App() {
   const [page, setPage] = useState('home')
@@ -15,6 +17,16 @@ export default function App() {
     setResultData(null)
   }
 
+  const handleStartDiagnosis = async () => {
+    try {
+      const res = await startDiagnosis(userId)
+      setDiagnosisData(res.data)
+      setPage('diagnosis')
+    } catch {
+      alert('診断の開始に失敗しました')
+    }
+  }
+
   return (
     <div className="container">
       {page === 'home' && (
@@ -25,6 +37,7 @@ export default function App() {
             setDiagnosisData(data)
             setPage('diagnosis')
           }}
+          onGoDashboard={() => setPage('dashboard')}
         />
       )}
       {page === 'diagnosis' && diagnosisData && (
@@ -39,7 +52,18 @@ export default function App() {
         />
       )}
       {page === 'results' && resultData && (
-        <Results result={resultData} onBack={goHome} />
+        <Results
+          result={resultData}
+          onBack={goHome}
+          onDashboard={() => setPage('dashboard')}
+        />
+      )}
+      {page === 'dashboard' && userId && (
+        <Dashboard
+          userId={userId}
+          onStartDiagnosis={handleStartDiagnosis}
+          onBack={goHome}
+        />
       )}
     </div>
   )
