@@ -1480,27 +1480,33 @@ QUESTIONS = [
 def seed():
     db = SessionLocal()
     try:
-        if db.query(Layer).count() > 0:
-            print("Data already exists. Skipping seed.")
-            print("To reset: delete english_app.db and run again.")
-            return
+        existing_layers = db.query(Layer).count()
+        if existing_layers == 0:
+            for data in LAYERS:
+                db.add(Layer(**data))
+            db.commit()
+            print(f"Inserted {len(LAYERS)} layers")
 
-        for data in LAYERS:
-            db.add(Layer(**data))
-        db.commit()
-        print(f"Inserted {len(LAYERS)} layers")
+            for data in CATEGORIES:
+                db.add(Category(**data))
+            db.commit()
+            print(f"Inserted {len(CATEGORIES)} categories")
 
-        for data in CATEGORIES:
-            db.add(Category(**data))
-        db.commit()
-        print(f"Inserted {len(CATEGORIES)} categories")
+            for data in UNITS:
+                db.add(Unit(**data))
+            db.commit()
+            print(f"Inserted {len(UNITS)} units")
+        else:
+            print("Layers/Categories/Units already exist. Skipping.")
 
-        for data in UNITS:
-            db.add(Unit(**data))
-        db.commit()
-        print(f"Inserted {len(UNITS)} units")
-
+        existing_texts = {
+            row[0] for row in db.query(Question.question_text).all()
+        }
+        new_count = 0
         for q_data in QUESTIONS:
+            if q_data["question_text"] in existing_texts:
+                continue
+
             question = Question(
                 unit_id=q_data["unit_id"],
                 question_text=q_data["question_text"],
@@ -1518,11 +1524,15 @@ def seed():
                     choice_order=c_data["order"],
                 )
                 db.add(choice)
+            new_count += 1
 
         db.commit()
-        print(f"Inserted {len(QUESTIONS)} questions with choices")
+        if new_count > 0:
+            print(f"Inserted {new_count} new questions with choices")
+        else:
+            print("No new questions to add.")
 
-        print("\nSeed completed successfully!")
+        print(f"\nSeed status:")
         print(f"  Layers: {db.query(Layer).count()}")
         print(f"  Categories: {db.query(Category).count()}")
         print(f"  Units: {db.query(Unit).count()}")

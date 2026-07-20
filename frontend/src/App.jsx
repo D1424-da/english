@@ -1,15 +1,33 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Home from './pages/Home'
 import Diagnosis from './pages/Diagnosis'
 import Results from './pages/Results'
 import Dashboard from './pages/Dashboard'
-import { startDiagnosis } from './api'
+import { startDiagnosis, getUser } from './api'
 
 export default function App() {
   const [page, setPage] = useState('home')
   const [userId, setUserId] = useState(null)
   const [diagnosisData, setDiagnosisData] = useState(null)
   const [resultData, setResultData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const savedId = localStorage.getItem('userId')
+    if (savedId) {
+      getUser(Number(savedId))
+        .then(() => setUserId(Number(savedId)))
+        .catch(() => localStorage.removeItem('userId'))
+        .finally(() => setLoading(false))
+    } else {
+      setLoading(false)
+    }
+  }, [])
+
+  const handleSetUserId = (id) => {
+    setUserId(id)
+    localStorage.setItem('userId', String(id))
+  }
 
   const goHome = () => {
     setPage('home')
@@ -27,12 +45,20 @@ export default function App() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="container" style={{ textAlign: 'center', paddingTop: 100 }}>
+        <p>読み込み中...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="container">
       {page === 'home' && (
         <Home
           userId={userId}
-          setUserId={setUserId}
+          setUserId={handleSetUserId}
           onStartDiagnosis={(data) => {
             setDiagnosisData(data)
             setPage('diagnosis')
