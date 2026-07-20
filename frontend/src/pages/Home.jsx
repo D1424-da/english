@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
-import { createUser, startDiagnosis } from '../api'
+import { createUser, loginUser, startDiagnosis } from '../api'
 
-export default function Home({ userId, setUserId, onStartDiagnosis, onGoDashboard }) {
+export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, onGoDashboard }) {
+  const [mode, setMode] = useState('login')
   const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [grade, setGrade] = useState('high2')
   const [loading, setLoading] = useState(false)
@@ -15,10 +17,37 @@ export default function Home({ userId, setUserId, onStartDiagnosis, onGoDashboar
     high3: '高校3年',
   }
 
+  const handleLogin = async (e) => {
+    e.preventDefault()
+    if (!username.trim() || !password) {
+      setError('ユーザー名とパスワードを入力してください')
+      return
+    }
+    setLoading(true)
+    setError('')
+    try {
+      const res = await loginUser({ username: username.trim(), password })
+      setUserId(res.data.id)
+      setRegistered(true)
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setError(err.response.data.detail || 'ユーザー名またはパスワードが正しくありません')
+      } else {
+        setError('ログインに失敗しました')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleRegister = async (e) => {
     e.preventDefault()
     if (!username.trim()) {
       setError('ユーザー名を入力してください')
+      return
+    }
+    if (!password || password.length < 4) {
+      setError('パスワードは4文字以上で入力してください')
       return
     }
     setLoading(true)
@@ -26,6 +55,7 @@ export default function Home({ userId, setUserId, onStartDiagnosis, onGoDashboar
     try {
       const res = await createUser({
         username: username.trim(),
+        password,
         display_name: displayName.trim() || username.trim(),
         grade: gradeLabels[grade],
       })
@@ -33,7 +63,12 @@ export default function Home({ userId, setUserId, onStartDiagnosis, onGoDashboar
       setRegistered(true)
     } catch (err) {
       if (err.response?.status === 400) {
-        setError('このユーザー名は既に使われています')
+        const detail = err.response.data.detail || ''
+        if (detail.includes('Username')) {
+          setError('このユーザー名は既に使われています')
+        } else {
+          setError(detail || '登録に失敗しました')
+        }
       } else {
         setError('登録に失敗しました。もう一度お試しください')
       }
@@ -55,6 +90,16 @@ export default function Home({ userId, setUserId, onStartDiagnosis, onGoDashboar
     }
   }
 
+  const switchMode = () => {
+    setMode(mode === 'login' ? 'register' : 'login')
+    setError('')
+  }
+
+  const inputStyle = {
+    width: '100%', padding: '10px 14px', border: '2px solid var(--border)',
+    borderRadius: 8, fontSize: '1rem',
+  }
+
   return (
     <>
       <div className="header">
@@ -64,64 +109,89 @@ export default function Home({ userId, setUserId, onStartDiagnosis, onGoDashboar
 
       {!registered ? (
         <div className="card">
-          <h2 style={{ marginBottom: 20 }}>はじめに</h2>
-          <p style={{ marginBottom: 20, color: 'var(--text-light)' }}>
-            ユーザー登録をして診断を始めましょう
-          </p>
-          <form onSubmit={handleRegister}>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
-                ユーザー名
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="英数字で入力"
-                style={{
-                  width: '100%', padding: '10px 14px', border: '2px solid var(--border)',
-                  borderRadius: 8, fontSize: '1rem',
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
-                表示名（任意）
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="ニックネームなど"
-                style={{
-                  width: '100%', padding: '10px 14px', border: '2px solid var(--border)',
-                  borderRadius: 8, fontSize: '1rem',
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
-                学年
-              </label>
-              <select
-                value={grade}
-                onChange={(e) => setGrade(e.target.value)}
-                style={{
-                  width: '100%', padding: '10px 14px', border: '2px solid var(--border)',
-                  borderRadius: 8, fontSize: '1rem', background: 'white',
-                }}
-              >
-                <option value="high1">高校1年</option>
-                <option value="high2">高校2年</option>
-                <option value="high3">高校3年</option>
-              </select>
-            </div>
-            {error && <p style={{ color: 'var(--danger)', marginBottom: 12 }}>{error}</p>}
-            <button type="submit" className="btn btn-primary" style={{ width: '100%' }}
-              disabled={loading}>
-              {loading ? '登録中...' : '登録する'}
-            </button>
-          </form>
+          {mode === 'login' ? (
+            <>
+              <h2 style={{ marginBottom: 20 }}>ログイン</h2>
+              <form onSubmit={handleLogin}>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
+                    ユーザー名
+                  </label>
+                  <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
+                    placeholder="ユーザー名を入力" style={inputStyle} />
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
+                    パスワード
+                  </label>
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                    placeholder="パスワードを入力" style={inputStyle} />
+                </div>
+                {error && <p style={{ color: 'var(--danger)', marginBottom: 12 }}>{error}</p>}
+                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}
+                  disabled={loading}>
+                  {loading ? 'ログイン中...' : 'ログイン'}
+                </button>
+              </form>
+              <p style={{ textAlign: 'center', marginTop: 16, color: 'var(--text-light)' }}>
+                アカウントをお持ちでない方は
+                <button onClick={switchMode} style={{
+                  background: 'none', border: 'none', color: 'var(--primary)',
+                  fontWeight: 600, cursor: 'pointer', padding: '0 4px', fontSize: 'inherit',
+                }}>新規登録</button>
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 style={{ marginBottom: 20 }}>新規登録</h2>
+              <form onSubmit={handleRegister}>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
+                    ユーザー名
+                  </label>
+                  <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
+                    placeholder="英数字で入力" style={inputStyle} />
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
+                    パスワード
+                  </label>
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                    placeholder="4文字以上" style={inputStyle} />
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
+                    表示名（任意）
+                  </label>
+                  <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="ニックネームなど" style={inputStyle} />
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
+                    学年
+                  </label>
+                  <select value={grade} onChange={(e) => setGrade(e.target.value)}
+                    style={{ ...inputStyle, background: 'white' }}>
+                    <option value="high1">高校1年</option>
+                    <option value="high2">高校2年</option>
+                    <option value="high3">高校3年</option>
+                  </select>
+                </div>
+                {error && <p style={{ color: 'var(--danger)', marginBottom: 12 }}>{error}</p>}
+                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}
+                  disabled={loading}>
+                  {loading ? '登録中...' : '登録する'}
+                </button>
+              </form>
+              <p style={{ textAlign: 'center', marginTop: 16, color: 'var(--text-light)' }}>
+                既にアカウントをお持ちの方は
+                <button onClick={switchMode} style={{
+                  background: 'none', border: 'none', color: 'var(--primary)',
+                  fontWeight: 600, cursor: 'pointer', padding: '0 4px', fontSize: 'inherit',
+                }}>ログイン</button>
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <>
@@ -138,9 +208,15 @@ export default function Home({ userId, setUserId, onStartDiagnosis, onGoDashboar
               onClick={handleStartDiagnosis} disabled={loading}>
               {loading ? '準備中...' : '診断スタート'}
             </button>
-            <button className="btn btn-secondary" style={{ width: '100%' }}
+            <button className="btn btn-secondary" style={{ width: '100%', marginBottom: 10 }}
               onClick={onGoDashboard}>
               学習履歴を見る
+            </button>
+            <button onClick={onLogout} style={{
+              background: 'none', border: 'none', color: 'var(--text-light)',
+              cursor: 'pointer', fontSize: '0.9rem', marginTop: 8,
+            }}>
+              ログアウト
             </button>
           </div>
 

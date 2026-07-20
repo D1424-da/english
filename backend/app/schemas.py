@@ -5,8 +5,14 @@ from datetime import datetime
 
 class UserCreate(BaseModel):
     username: str
+    password: str
     display_name: Optional[str] = None
     grade: Optional[str] = None
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
 
 
 class UserResponse(BaseModel):

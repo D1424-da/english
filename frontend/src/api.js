@@ -7,6 +7,7 @@ const api = axios.create({
 export const healthCheck = () => api.get('/health')
 
 export const createUser = (data) => api.post('/users/', data)
+export const loginUser = (data) => api.post('/users/login', data)
 export const getUser = (id) => api.get(`/users/${id}`)
 
 export const getLayers = () => api.get('/questions/layers')

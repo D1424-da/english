@@ -35,6 +35,14 @@ export default function App() {
     setResultData(null)
   }
 
+  const handleLogout = () => {
+    setUserId(null)
+    localStorage.removeItem('userId')
+    setPage('home')
+    setDiagnosisData(null)
+    setResultData(null)
+  }
+
   const handleStartDiagnosis = async () => {
     try {
       const res = await startDiagnosis(userId)
@@ -59,6 +67,7 @@ export default function App() {
         <Home
           userId={userId}
           setUserId={handleSetUserId}
+          onLogout={handleLogout}
           onStartDiagnosis={(data) => {
             setDiagnosisData(data)
             setPage('diagnosis')
