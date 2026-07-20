@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: english-diagnosis
+    runtime: docker
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: english-diagnosis-db
+          property: connectionURI
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: DEBUG
+        value: "false"
+
+databases:
+  - name: english-diagnosis-db
+    plan: free
+    databaseName: english_app
+    user: english_user

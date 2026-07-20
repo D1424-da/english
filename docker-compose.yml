@@ -6,12 +6,13 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:///./english_app.db
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-sk-ant-your-key-here}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./english_app.db}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
+      - DEBUG=${DEBUG:-false}
     volumes:
       - app-data:/app/data
 
-  # PostgreSQL (uncomment for production)
+  # PostgreSQL (uncomment for local production testing)
   # db:
   #   image: postgres:15
   #   environment:
