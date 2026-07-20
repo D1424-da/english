@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./english_app.db}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
+      - DEBUG=${DEBUG:-false}
+    volumes:
+      - app-data:/app/data
+
+  # PostgreSQL (uncomment for local production testing)
+  # db:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: english_app
+  #     POSTGRES_USER: english_user
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+
+volumes:
+  app-data:
+  # pgdata:

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Diagnosis - 英語学習アプリ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .features {
+            text-align: left;
+            margin: 30px 0;
+        }
+
+        .features ul {
+            list-style: none;
+        }
+
+        .features li {
+            color: #555;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+
+        .features li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .status {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-title {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .status-text {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f4ff;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #e6ecff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 English Diagnosis</h1>
+        <p class="subtitle">あなたの英語の弱点を見つけるアプリ</p>
+
+        <div class="features">
+            <ul>
+                <li>自分の弱点を診断</li>
+                <li>何を勉強すべきか提案</li>
+                <li>成長をグラフで可視化</li>
+                <li>AIによる分かりやすい解説</li>
+            </ul>
+        </div>
+
+        <div class="status">
+            <div class="status-title">✅ プロジェクト初期化完了</div>
+            <div class="status-text">
+                バックエンド: FastAPI<br>
+                フロント: React<br>
+                DB: PostgreSQL<br>
+                <strong>開発開始準備完了！</strong>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="goToDocs()">📖 API ドキュメント</button>
+            <button class="btn-secondary" onclick="checkHealth()">🔍 ヘルスチェック</button>
+        </div>
+    </div>
+
+    <script>
+        function goToDocs() {
+            window.open('http://localhost:8000/docs', '_blank');
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch('http://localhost:8000/api/health');
+                const data = await response.json();
+                alert(`✅ API Status: ${data.status}\n${data.message}`);
+            } catch (error) {
+                alert('❌ APIに接続できません。\nバックエンドが起動していることを確認してください。');
+            }
+        }
+    </script>
+</body>
+</html>
