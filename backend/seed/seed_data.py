@@ -1458,17 +1458,17 @@ def seed():
                 db.add(Unit(**data))
             db.commit()
             print(f"Inserted {len(UNITS)} units")
-
-            if engine.dialect.name == "postgresql":
-                with engine.begin() as conn:
-                    for table in ["layers", "categories", "units"]:
-                        conn.execute(text(
-                            f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), "
-                            f"(SELECT COALESCE(MAX(id), 0) FROM {table}))"
-                        ))
-                print("Reset PostgreSQL sequences")
         else:
             print("Layers/Categories/Units already exist. Skipping.")
+
+        if engine.dialect.name == "postgresql":
+            with engine.begin() as conn:
+                for table in ["layers", "categories", "units", "questions", "choices"]:
+                    conn.execute(text(
+                        f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), "
+                        f"(SELECT COALESCE(MAX(id), 0) FROM {table}))"
+                    ))
+            print("Synced PostgreSQL sequences")
 
         existing_texts = {
             row[0] for row in db.query(Question.question_text).all()
@@ -1514,6 +1514,37 @@ def seed():
         db.close()
 
 
+def fix_misplaced_questions():
+    """Move 4 reading questions that were incorrectly assigned to vocabulary units."""
+    db = SessionLocal()
+    try:
+        reassign = {
+            "次の英文の意味として最も適切なものを選びなさい。\n\n「Despite the heavy rain, she decided to go out.」": "RD-001",
+            "次の英文の意味として最も適切なものを選びなさい。\n\n「He is not only smart but also kind.」": "RD-001",
+            "次の英文の意味として最も適切なものを選びなさい。\n\n「The more you practice, the better you become.」": "RD-001",
+            "次の英文の空所に入る最も適切な語を選びなさい。\n\n「It is important for students to develop critical thinking skills. ___, they should read various kinds of books.」": "RD-003",
+        }
+        unit_cache = {}
+        fixed = 0
+        for q_text, target_code in reassign.items():
+            q = db.query(Question).filter(Question.question_text == q_text).first()
+            if not q:
+                continue
+            if target_code not in unit_cache:
+                u = db.query(Unit).filter(Unit.code == target_code).first()
+                if u:
+                    unit_cache[target_code] = u.id
+            target_id = unit_cache.get(target_code)
+            if target_id and q.unit_id != target_id:
+                q.unit_id = target_id
+                fixed += 1
+        if fixed:
+            db.commit()
+            print(f"Reassigned {fixed} questions to correct reading units")
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     seed()
     from seed.seed_vocab import seed_vocab
@@ -1522,3 +1553,4 @@ if __name__ == "__main__":
     seed_reading()
     from seed.seed_junior import seed_junior
     seed_junior()
+    fix_misplaced_questions()
