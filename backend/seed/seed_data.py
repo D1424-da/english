@@ -1547,3 +1547,5 @@ if __name__ == "__main__":
     seed()
     from seed.seed_vocab import seed_vocab
     seed_vocab()
+    from seed.seed_reading import seed_reading
+    seed_reading()

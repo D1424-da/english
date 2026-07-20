@@ -3,6 +3,7 @@ import Home from './pages/Home'
 import Diagnosis from './pages/Diagnosis'
 import Results from './pages/Results'
 import Dashboard from './pages/Dashboard'
+import Practice from './pages/Practice'
 import { startDiagnosis, getUser } from './api'
 
 export default function App() {
@@ -73,6 +74,7 @@ export default function App() {
             setPage('diagnosis')
           }}
           onGoDashboard={() => setPage('dashboard')}
+          onGoPractice={() => setPage('practice')}
         />
       )}
       {page === 'diagnosis' && diagnosisData && (
@@ -96,6 +98,16 @@ export default function App() {
             setDiagnosisData(data)
             setPage('diagnosis')
           }}
+        />
+      )}
+      {page === 'practice' && userId && (
+        <Practice
+          userId={userId}
+          onStartPractice={(data) => {
+            setDiagnosisData(data)
+            setPage('diagnosis')
+          }}
+          onBack={goHome}
         />
       )}
       {page === 'dashboard' && userId && (

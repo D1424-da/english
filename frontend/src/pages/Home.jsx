@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { createUser, loginUser, startDiagnosis } from '../api'
 
-export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, onGoDashboard }) {
+export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, onGoDashboard, onGoPractice }) {
   const [mode, setMode] = useState('login')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -207,6 +207,10 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
             <button className="btn btn-primary" style={{ width: '100%', fontSize: '1.1rem', padding: '16px', marginBottom: 10 }}
               onClick={handleStartDiagnosis} disabled={loading}>
               {loading ? '準備中...' : '診断スタート'}
+            </button>
+            <button className="btn btn-secondary" style={{ width: '100%', marginBottom: 10 }}
+              onClick={onGoPractice}>
+              単元別練習
             </button>
             <button className="btn btn-secondary" style={{ width: '100%', marginBottom: 10 }}
               onClick={onGoDashboard}>
