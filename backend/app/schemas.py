@@ -66,6 +66,11 @@ class DiagnosisStart(BaseModel):
     user_id: int
 
 
+class WeakPracticeStart(BaseModel):
+    user_id: int
+    unit_codes: list[str]
+
+
 class DiagnosisSession(BaseModel):
     session_id: str
     user_id: int

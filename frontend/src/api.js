@@ -14,6 +14,8 @@ export const getCategories = (layerId) => api.get('/questions/categories', { par
 export const getUnits = (categoryId) => api.get('/questions/units', { params: { category_id: categoryId } })
 
 export const startDiagnosis = (userId) => api.post('/diagnosis/start', { user_id: userId })
+export const startWeakPractice = (userId, unitCodes) =>
+  api.post('/diagnosis/weak-practice', { user_id: userId, unit_codes: unitCodes })
 export const submitAnswer = (sessionId, userId, questionId, choiceId) =>
   api.post(`/diagnosis/answer?session_id=${sessionId}&user_id=${userId}`, {
     question_id: questionId,

@@ -6,8 +6,9 @@ from ..models import User, Unit
 from ..schemas import (
     DiagnosisStart, DiagnosisSession, QuestionResponse,
     AnswerSubmit, AnswerResult, DiagnosisResultResponse,
+    WeakPracticeStart,
 )
-from ..services.diagnosis_service import start_diagnosis, submit_answer, calculate_diagnosis
+from ..services.diagnosis_service import start_diagnosis, submit_answer, calculate_diagnosis, start_weak_practice
 
 router = APIRouter(prefix="/diagnosis", tags=["diagnosis"])
 
@@ -59,6 +60,43 @@ def submit_answer_endpoint(
         is_correct=is_correct,
         correct_choice_id=correct_id,
         explanation=explanation,
+    )
+
+
+@router.post("/weak-practice", response_model=DiagnosisSession)
+def start_weak_practice_session(req: WeakPracticeStart, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == req.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not req.unit_codes:
+        raise HTTPException(status_code=400, detail="No weak units specified")
+
+    session_id, questions = start_weak_practice(db, req.user_id, req.unit_codes)
+
+    if not questions:
+        raise HTTPException(status_code=404, detail="No questions found for specified units")
+
+    question_list = []
+    for q in questions:
+        unit = db.query(Unit).filter(Unit.id == q.unit_id).first()
+        question_list.append(QuestionResponse(
+            id=q.id,
+            question_text=q.question_text,
+            question_type=q.question_type,
+            difficulty=q.difficulty,
+            unit_name=unit.name if unit else None,
+            choices=[
+                {"id": c.id, "choice_text": c.choice_text, "choice_order": c.choice_order}
+                for c in sorted(q.choices, key=lambda c: c.choice_order)
+            ],
+        ))
+
+    return DiagnosisSession(
+        session_id=session_id,
+        user_id=req.user_id,
+        questions=question_list,
+        total_questions=len(question_list),
     )
 
 
