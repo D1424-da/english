@@ -98,6 +98,7 @@ export default function App() {
             setDiagnosisData(data)
             setPage('diagnosis')
           }}
+          onPractice={() => setPage('practice')}
         />
       )}
       {page === 'practice' && userId && (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { startWeakPractice } from '../api'
 
-export default function Results({ result, userId, onBack, onDashboard, onStartPractice }) {
+export default function Results({ result, userId, onBack, onDashboard, onStartPractice, onPractice }) {
   const { overall_score, correct_count, total_questions, unit_scores, weak_units, recommendations } = result
   const [loading, setLoading] = useState(false)
 
@@ -95,13 +95,18 @@ export default function Results({ result, userId, onBack, onDashboard, onStartPr
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginTop: 8, marginBottom: 40 }}>
-        <button className="btn btn-primary" style={{ flex: 1 }} onClick={onDashboard}>
-          学習履歴を見る
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8, marginBottom: 40 }}>
+        <button className="btn btn-primary" style={{ width: '100%', padding: 14 }} onClick={onPractice}>
+          単元別練習へ
         </button>
-        <button className="btn btn-secondary" style={{ flex: 1 }} onClick={onBack}>
-          ホームに戻る
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn btn-secondary" style={{ flex: 1 }} onClick={onDashboard}>
+            学習履歴を見る
+          </button>
+          <button className="btn btn-secondary" style={{ flex: 1 }} onClick={onBack}>
+            ホームに戻る
+          </button>
+        </div>
       </div>
     </>
   )
