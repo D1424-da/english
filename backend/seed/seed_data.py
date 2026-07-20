@@ -1545,3 +1545,5 @@ def seed():
 
 if __name__ == "__main__":
     seed()
+    from seed.seed_vocab import seed_vocab
+    seed_vocab()
