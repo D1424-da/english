@@ -6,12 +6,15 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
-  const [grade, setGrade] = useState('high2')
+  const [grade, setGrade] = useState('junior1')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [registered, setRegistered] = useState(!!userId)
 
   const gradeLabels = {
+    junior1: '中学1年',
+    junior2: '中学2年',
+    junior3: '中学3年',
     high1: '高校1年',
     high2: '高校2年',
     high3: '高校3年',
@@ -172,6 +175,9 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
                   </label>
                   <select value={grade} onChange={(e) => setGrade(e.target.value)}
                     style={{ ...inputStyle, background: 'white' }}>
+                    <option value="junior1">中学1年</option>
+                    <option value="junior2">中学2年</option>
+                    <option value="junior3">中学3年</option>
                     <option value="high1">高校1年</option>
                     <option value="high2">高校2年</option>
                     <option value="high3">高校3年</option>

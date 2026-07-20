@@ -3,17 +3,32 @@ import json
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from ..models import Question, Choice, UserAnswer, DiagnosisResult, Unit, Category, Layer
+from ..models import Question, Choice, UserAnswer, DiagnosisResult, Unit, Category, Layer, User
 from ..schemas import UnitScore
 
 WEAK_THRESHOLD = 0.6
+
+GRADE_MAX_DIFFICULTY = {
+    "中学1年": 1,
+    "中学2年": 1,
+    "中学3年": 2,
+    "高校1年": 2,
+    "高校2年": 3,
+    "高校3年": 3,
+}
 
 
 def start_diagnosis(db: Session, user_id: int, num_questions: int = 20) -> tuple[str, list[Question]]:
     session_id = str(uuid.uuid4())
 
+    user = db.query(User).filter(User.id == user_id).first()
+    max_diff = 3
+    if user and user.grade:
+        max_diff = GRADE_MAX_DIFFICULTY.get(user.grade, 3)
+
     questions = (
         db.query(Question)
+        .filter(Question.difficulty <= max_diff)
         .order_by(func.random())
         .limit(num_questions)
         .all()
