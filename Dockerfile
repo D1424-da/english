@@ -10,7 +10,7 @@ COPY backend/ .
 FROM node:18-slim AS frontend-build
 
 WORKDIR /frontend
-COPY frontend/package.json .
+COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install
 COPY frontend/ .
 RUN npm run build
@@ -25,9 +25,8 @@ COPY backend/ .
 COPY --from=frontend-build /frontend/dist ../frontend/dist
 
 ENV DATABASE_URL=sqlite:///./english_app.db
-ENV ANTHROPIC_API_KEY=sk-ant-your-key-here
-ENV FRONTEND_URL=http://localhost:3000
+ENV DEBUG=false
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python -m seed.seed_data && uvicorn main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "python -m seed.seed_data && gunicorn main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120"]
