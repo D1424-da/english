@@ -60,7 +60,7 @@ def submit_answer(db: Session, user_id: int, session_id: str,
         .first()
     )
 
-    is_correct = correct_choice and correct_choice.id == selected_choice_id
+    is_correct = bool(correct_choice and correct_choice.id == selected_choice_id)
 
     answer = UserAnswer(
         user_id=user_id,

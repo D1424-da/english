@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -33,7 +33,7 @@ def get_units(category_id: int = Query(None), db: Session = Depends(get_db)):
 def get_question(question_id: int, db: Session = Depends(get_db)):
     question = db.query(Question).filter(Question.id == question_id).first()
     if not question:
-        return {"error": "Question not found"}
+        raise HTTPException(status_code=404, detail="Question not found")
 
     unit = db.query(Unit).filter(Unit.id == question.unit_id).first()
 
