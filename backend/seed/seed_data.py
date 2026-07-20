@@ -8,6 +8,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from sqlalchemy import text
 from app.database import SessionLocal, engine, Base
 from app.models import Layer, Category, Unit, Question, Choice
 
@@ -788,45 +789,6 @@ QUESTIONS = [
          {"text": "have studied", "correct": False, "order": 4},
      ]},
     # =====================================================================
-    # 層3: 読解基礎 > 短文読解
-    # =====================================================================
-    {"unit_id": 1, "difficulty": 2, "question_text":
-     "次の英文の意味として最も適切なものを選びなさい。\n\n「Despite the heavy rain, she decided to go out.」",
-     "explanation": "despite は「～にもかかわらず」という意味の前置詞です。後ろには名詞（句）が続きます。",
-     "choices": [
-         {"text": "大雨のせいで、彼女は外出を決めた", "correct": False, "order": 1},
-         {"text": "大雨にもかかわらず、彼女は外出を決めた", "correct": True, "order": 2},
-         {"text": "大雨が降る前に、彼女は外出を決めた", "correct": False, "order": 3},
-         {"text": "大雨が降ったので、彼女は外出をやめた", "correct": False, "order": 4},
-     ]},
-    {"unit_id": 1, "difficulty": 2, "question_text":
-     "次の英文の意味として最も適切なものを選びなさい。\n\n「He is not only smart but also kind.」",
-     "explanation": "not only A but also B は「AだけでなくBも」という意味の相関接続詞です。",
-     "choices": [
-         {"text": "彼は賢いが優しくない", "correct": False, "order": 1},
-         {"text": "彼は賢くないが優しい", "correct": False, "order": 2},
-         {"text": "彼は賢いだけでなく優しくもある", "correct": True, "order": 3},
-         {"text": "彼は賢くも優しくもない", "correct": False, "order": 4},
-     ]},
-    {"unit_id": 2, "difficulty": 2, "question_text":
-     "次の英文の意味として最も適切なものを選びなさい。\n\n「The more you practice, the better you become.」",
-     "explanation": "the + 比較級, the + 比較級 で「～すればするほど…になる」の意味です。",
-     "choices": [
-         {"text": "もっと練習すれば、すぐに上手になる", "correct": False, "order": 1},
-         {"text": "練習すればするほど、上手になる", "correct": True, "order": 2},
-         {"text": "練習しても、上手にならない", "correct": False, "order": 3},
-         {"text": "一番練習した人が一番上手だ", "correct": False, "order": 4},
-     ]},
-    {"unit_id": 2, "difficulty": 3, "question_text":
-     "次の英文の空所に入る最も適切な語を選びなさい。\n\n「It is important for students to develop critical thinking skills. ___, they should read various kinds of books.」",
-     "explanation": "前文で「批判的思考力を身につけることが重要」と述べ、その方法として「様々な本を読むべき」と続けるので、Therefore（したがって）が適切です。",
-     "choices": [
-         {"text": "However", "correct": False, "order": 1},
-         {"text": "Therefore", "correct": True, "order": 2},
-         {"text": "Meanwhile", "correct": False, "order": 3},
-         {"text": "Otherwise", "correct": False, "order": 4},
-     ]},
-    # =====================================================================
     # 追加問題（各単元3問ずつ）
     # =====================================================================
     # --- unit 1: 基本語彙（中学復習） ---
@@ -1496,6 +1458,15 @@ def seed():
                 db.add(Unit(**data))
             db.commit()
             print(f"Inserted {len(UNITS)} units")
+
+            if engine.dialect.name == "postgresql":
+                with engine.begin() as conn:
+                    for table in ["layers", "categories", "units"]:
+                        conn.execute(text(
+                            f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), "
+                            f"(SELECT COALESCE(MAX(id), 0) FROM {table}))"
+                        ))
+                print("Reset PostgreSQL sequences")
         else:
             print("Layers/Categories/Units already exist. Skipping.")
 

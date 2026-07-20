@@ -5,6 +5,7 @@ export default function Dashboard({ userId, onStartDiagnosis, onBack }) {
   const [stats, setStats] = useState(null)
   const [progress, setProgress] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const load = async () => {
@@ -17,6 +18,7 @@ export default function Dashboard({ userId, onStartDiagnosis, onBack }) {
         setProgress(progRes.data)
       } catch (err) {
         console.error(err)
+        setError('データの読み込みに失敗しました')
       } finally {
         setLoading(false)
       }
@@ -25,6 +27,13 @@ export default function Dashboard({ userId, onStartDiagnosis, onBack }) {
   }, [userId])
 
   if (loading) return <div className="card" style={{ textAlign: 'center', padding: 40 }}>読み込み中...</div>
+
+  if (error) return (
+    <div className="card" style={{ textAlign: 'center', padding: 40 }}>
+      <p style={{ color: 'var(--danger)', marginBottom: 16 }}>{error}</p>
+      <button className="btn btn-secondary" onClick={onBack}>ホームに戻る</button>
+    </div>
+  )
 
   const barColor = (score) => {
     if (score >= 80) return 'var(--success)'
@@ -55,13 +64,13 @@ export default function Dashboard({ userId, onStartDiagnosis, onBack }) {
         </div>
         <div className="card" style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--success)' }}>
-            {stats?.best_score || '-'}%
+            {stats?.best_score ?? '-'}%
           </div>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>最高スコア</div>
         </div>
         <div className="card" style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--warning)' }}>
-            {stats?.latest_score || '-'}%
+            {stats?.latest_score ?? '-'}%
           </div>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>最新スコア</div>
         </div>
