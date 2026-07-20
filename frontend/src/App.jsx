@@ -54,8 +54,13 @@ export default function App() {
       {page === 'results' && resultData && (
         <Results
           result={resultData}
+          userId={userId}
           onBack={goHome}
           onDashboard={() => setPage('dashboard')}
+          onStartPractice={(data) => {
+            setDiagnosisData(data)
+            setPage('diagnosis')
+          }}
         />
       )}
       {page === 'dashboard' && userId && (

@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { startWeakPractice } from '../api'
 
-export default function Results({ result, onBack, onDashboard }) {
+export default function Results({ result, userId, onBack, onDashboard, onStartPractice }) {
   const { overall_score, correct_count, total_questions, unit_scores, weak_units, recommendations } = result
+  const [loading, setLoading] = useState(false)
 
   const scoreClass = overall_score >= 80 ? 'high' : overall_score >= 50 ? 'mid' : 'low'
 
@@ -11,6 +13,19 @@ export default function Results({ result, onBack, onDashboard }) {
     if (score >= 80) return 'var(--success)'
     if (score >= 50) return 'var(--warning)'
     return 'var(--danger)'
+  }
+
+  const handleWeakPractice = async () => {
+    const weakCodes = weak_units.map(u => u.unit_code)
+    setLoading(true)
+    try {
+      const res = await startWeakPractice(userId, weakCodes)
+      onStartPractice(res.data)
+    } catch {
+      alert('弱点克服モードの開始に失敗しました')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -49,6 +64,14 @@ export default function Results({ result, onBack, onDashboard }) {
               </span>
             </div>
           ))}
+          <button
+            className="btn btn-primary"
+            style={{ width: '100%', marginTop: 16, background: 'var(--danger)' }}
+            onClick={handleWeakPractice}
+            disabled={loading}
+          >
+            {loading ? '準備中...' : '弱点を克服する'}
+          </button>
         </div>
       )}
 

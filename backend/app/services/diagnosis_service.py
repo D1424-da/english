@@ -22,6 +22,21 @@ def start_diagnosis(db: Session, user_id: int, num_questions: int = 20) -> tuple
     return session_id, questions
 
 
+def start_weak_practice(db: Session, user_id: int, unit_codes: list[str]) -> tuple[str, list[Question]]:
+    session_id = str(uuid.uuid4())
+
+    unit_ids = [u.id for u in db.query(Unit).filter(Unit.code.in_(unit_codes)).all()]
+
+    questions = (
+        db.query(Question)
+        .filter(Question.unit_id.in_(unit_ids))
+        .order_by(func.random())
+        .all()
+    )
+
+    return session_id, questions
+
+
 def submit_answer(db: Session, user_id: int, session_id: str,
                   question_id: int, selected_choice_id: int) -> tuple[bool, int, str | None]:
     correct_choice = (
