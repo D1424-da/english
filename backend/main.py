@@ -35,6 +35,17 @@ if "users" in inspector.get_table_names():
         except Exception:
             logger.debug("password_hash column already added by another worker")
 
+if engine.dialect.name == "postgresql":
+    RLS_TABLES = ["users", "layers", "categories", "units",
+                  "questions", "choices", "user_answers", "diagnosis_results"]
+    try:
+        with engine.begin() as conn:
+            for table in RLS_TABLES:
+                conn.execute(text(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY"))
+        logger.info("Row-Level Security enabled on all tables")
+    except Exception:
+        logger.debug("RLS already enabled or not applicable")
+
 app = FastAPI(
     title="English Diagnosis API",
     description="英語学習診断アプリ - 弱点を見つけ、何を学べばよいかを示す",
