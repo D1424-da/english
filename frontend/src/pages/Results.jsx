@@ -43,6 +43,11 @@ export default function Results({ result, userId, onBack, onDashboard, onStartPr
         <p style={{ fontSize: '1.1rem', color: 'var(--text-light)' }}>
           {total_questions}問中 {correct_count}問正解
         </p>
+        <p style={{ fontSize: '1rem', fontWeight: 600, marginTop: 8 }}>
+          {overall_score >= 80 ? '\u{1F389} すばらしい！この調子で続けよう！'
+            : overall_score >= 50 ? '\u{1F4AA} よくがんばりました！弱点をつぶせばもっと伸びる！'
+            : '\u{1F331} ここからが伸びるチャンス！下の勉強法から始めよう！'}
+        </p>
       </div>
 
       {weak_units.length > 0 && (

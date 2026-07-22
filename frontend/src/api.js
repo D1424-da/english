@@ -25,8 +25,12 @@ export const submitAnswer = (sessionId, userId, questionId, choiceId) =>
 export const getDiagnosisResult = (sessionId, userId) =>
   api.post(`/diagnosis/result?session_id=${sessionId}&user_id=${userId}`)
 
+export const startReviewMistakes = (userId) =>
+  api.post('/diagnosis/review-mistakes', { user_id: userId })
+
 export const getSessionHistory = (userId) => api.get(`/history/${userId}/sessions`)
 export const getUserStats = (userId) => api.get(`/history/${userId}/stats`)
 export const getUnitProgress = (userId) => api.get(`/history/${userId}/unit-progress`)
+export const getMotivation = (userId) => api.get(`/history/${userId}/motivation`)
 
 export default api

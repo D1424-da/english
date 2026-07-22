@@ -1,5 +1,6 @@
 import uuid
 import json
+from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -52,6 +53,35 @@ def start_weak_practice(db: Session, user_id: int, unit_codes: list[str]) -> tup
         db.query(Question)
         .filter(Question.unit_id.in_(unit_ids), Question.difficulty <= max_diff)
         .order_by(func.random())
+        .all()
+    )
+
+    return session_id, questions
+
+
+def start_review_mistakes(db: Session, user_id: int, num_questions: int = 20) -> tuple[str, list[Question]]:
+    """直近の回答が不正解のままの問題を集めて解き直しセッションを作る（テスト効果）。"""
+    session_id = str(uuid.uuid4())
+
+    answers = db.query(UserAnswer).filter(UserAnswer.user_id == user_id).all()
+    latest: dict[int, UserAnswer] = {}
+    for a in sorted(answers, key=lambda x: x.answered_at or datetime.min):
+        latest[a.question_id] = a
+    mistake_ids = [qid for qid, a in latest.items() if not a.is_correct]
+
+    if not mistake_ids:
+        return session_id, []
+
+    user = db.query(User).filter(User.id == user_id).first()
+    max_diff = 3
+    if user and user.grade:
+        max_diff = GRADE_MAX_DIFFICULTY.get(user.grade, 3)
+
+    questions = (
+        db.query(Question)
+        .filter(Question.id.in_(mistake_ids), Question.difficulty <= max_diff)
+        .order_by(func.random())
+        .limit(num_questions)
         .all()
     )
 

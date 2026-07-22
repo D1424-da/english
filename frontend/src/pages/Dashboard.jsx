@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react'
-import { getUserStats, getUnitProgress } from '../api'
+import { getUserStats, getUnitProgress, getMotivation } from '../api'
 
 export default function Dashboard({ userId, onStartDiagnosis, onBack }) {
   const [stats, setStats] = useState(null)
   const [progress, setProgress] = useState([])
+  const [motivation, setMotivation] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [statsRes, progRes] = await Promise.all([
+        const [statsRes, progRes, motRes] = await Promise.all([
           getUserStats(userId),
           getUnitProgress(userId),
+          getMotivation(userId),
         ])
         setStats(statsRes.data)
         setProgress(progRes.data)
+        setMotivation(motRes.data)
       } catch (err) {
         console.error(err)
         setError('データの読み込みに失敗しました')
@@ -47,6 +50,53 @@ export default function Dashboard({ userId, onStartDiagnosis, onBack }) {
         <h1>ダッシュボード</h1>
         <p>{stats?.user?.display_name || stats?.user?.username} さんの学習状況</p>
       </div>
+
+      {/* Motivation cards */}
+      {motivation && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 16 }}>
+          <div className="card" style={{ textAlign: 'center', marginBottom: 0 }}>
+            <div style={{ fontSize: '2rem', fontWeight: 700 }}>
+              {'\u{1F525}'} {motivation.streak}日
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>連続学習</div>
+          </div>
+          <div className="card" style={{ textAlign: 'center', marginBottom: 0 }}>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>
+              Lv.{motivation.level}
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
+              次のレベルまで {motivation.xp_per_level - motivation.xp_in_level} XP
+            </div>
+            <div className="progress-bar" style={{ height: 6, marginTop: 6, marginBottom: 0 }}>
+              <div className="fill" style={{ width: `${motivation.xp_in_level / motivation.xp_per_level * 100}%` }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Learning calendar heatmap */}
+      {motivation && (
+        <div className="card">
+          <h3 style={{ marginBottom: 12 }}>学習カレンダー（直近10週間）</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gridAutoFlow: 'column', gridTemplateRows: 'repeat(7, 1fr)', gap: 3 }}>
+            {motivation.activity.map((day, i) => {
+              const c = day.count
+              const bg = c === 0 ? 'var(--border)'
+                : c < 5 ? 'rgba(102,126,234,0.35)'
+                : c < 10 ? 'rgba(102,126,234,0.65)'
+                : 'var(--primary)'
+              return (
+                <div key={i} title={`${day.date}: ${c}問`} style={{
+                  aspectRatio: '1', borderRadius: 3, background: bg,
+                }} />
+              )
+            })}
+          </div>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: 8, textAlign: 'right' }}>
+            色が濃いほどたくさん学習した日
+          </p>
+        </div>
+      )}
 
       {/* Stats cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 16 }}>

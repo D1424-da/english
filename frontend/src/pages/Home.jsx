@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { createUser, loginUser, startDiagnosis } from '../api'
+import React, { useState, useEffect } from 'react'
+import { createUser, loginUser, startDiagnosis, getMotivation, startReviewMistakes } from '../api'
 
 export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, onGoDashboard, onGoPractice }) {
   const [mode, setMode] = useState('login')
@@ -10,6 +10,15 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [registered, setRegistered] = useState(!!userId)
+  const [motivation, setMotivation] = useState(null)
+
+  useEffect(() => {
+    if (registered && userId) {
+      getMotivation(userId)
+        .then((res) => setMotivation(res.data))
+        .catch(() => {})
+    }
+  }, [registered, userId])
 
   const gradeLabels = {
     junior1: '中学1年',
@@ -88,6 +97,23 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
       onStartDiagnosis(res.data)
     } catch (err) {
       setError('診断の開始に失敗しました')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReviewMistakes = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await startReviewMistakes(userId)
+      onStartDiagnosis(res.data)
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setError(err.response.data.detail || '解き直す問題がありません')
+      } else {
+        setError('解き直しの開始に失敗しました')
+      }
     } finally {
       setLoading(false)
     }
@@ -201,6 +227,44 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
         </div>
       ) : (
         <>
+          {motivation && (
+            <div className="card">
+              <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center', marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 700 }}>
+                    {motivation.streak > 0 ? '\u{1F525}' : '\u{1F331}'} {motivation.streak}日
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>連続学習</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--primary)' }}>
+                    Lv.{motivation.level}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
+                    {motivation.xp} XP
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 700, color: motivation.today_count >= motivation.daily_goal ? 'var(--success)' : 'var(--text)' }}>
+                    {motivation.today_count}/{motivation.daily_goal}問
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>今日の目標</div>
+                </div>
+              </div>
+              <div className="progress-bar" style={{ marginBottom: 6 }}>
+                <div className="fill" style={{
+                  width: `${Math.min(motivation.today_count / motivation.daily_goal * 100, 100)}%`,
+                  background: motivation.today_count >= motivation.daily_goal ? 'var(--success)' : 'var(--primary)',
+                }} />
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', textAlign: 'center' }}>
+                {motivation.today_count >= motivation.daily_goal
+                  ? '\u{1F389} 今日の目標達成！すばらしい！'
+                  : `今日はあと${motivation.daily_goal - motivation.today_count}問で目標達成！`}
+              </p>
+            </div>
+          )}
+
           <div className="card" style={{ textAlign: 'center' }}>
             <h2 style={{ marginBottom: 16 }}>診断を始めましょう</h2>
             <p style={{ marginBottom: 8, color: 'var(--text-light)' }}>
@@ -214,6 +278,14 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
               onClick={handleStartDiagnosis} disabled={loading}>
               {loading ? '準備中...' : '診断スタート'}
             </button>
+            {motivation && motivation.mistake_count > 0 && (
+              <button className="btn btn-secondary" style={{
+                width: '100%', marginBottom: 10,
+                borderColor: 'var(--warning)', color: 'var(--warning)',
+              }} onClick={handleReviewMistakes} disabled={loading}>
+                間違えた問題を解き直す（{motivation.mistake_count}問）
+              </button>
+            )}
             <button className="btn btn-secondary" style={{ width: '100%', marginBottom: 10 }}
               onClick={onGoPractice}>
               単元別練習

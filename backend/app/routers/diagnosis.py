@@ -8,7 +8,10 @@ from ..schemas import (
     AnswerSubmit, AnswerResult, DiagnosisResultResponse,
     WeakPracticeStart,
 )
-from ..services.diagnosis_service import start_diagnosis, submit_answer, calculate_diagnosis, start_weak_practice
+from ..services.diagnosis_service import (
+    start_diagnosis, submit_answer, calculate_diagnosis,
+    start_weak_practice, start_review_mistakes,
+)
 
 router = APIRouter(prefix="/diagnosis", tags=["diagnosis"])
 
@@ -76,6 +79,40 @@ def start_weak_practice_session(req: WeakPracticeStart, db: Session = Depends(ge
 
     if not questions:
         raise HTTPException(status_code=404, detail="No questions found for specified units")
+
+    question_list = []
+    for q in questions:
+        unit = db.query(Unit).filter(Unit.id == q.unit_id).first()
+        question_list.append(QuestionResponse(
+            id=q.id,
+            question_text=q.question_text,
+            question_type=q.question_type,
+            difficulty=q.difficulty,
+            unit_name=unit.name if unit else None,
+            choices=[
+                {"id": c.id, "choice_text": c.choice_text, "choice_order": c.choice_order}
+                for c in sorted(q.choices, key=lambda c: c.choice_order)
+            ],
+        ))
+
+    return DiagnosisSession(
+        session_id=session_id,
+        user_id=req.user_id,
+        questions=question_list,
+        total_questions=len(question_list),
+    )
+
+
+@router.post("/review-mistakes", response_model=DiagnosisSession)
+def start_review_mistakes_session(req: DiagnosisStart, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == req.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    session_id, questions = start_review_mistakes(db, req.user_id)
+
+    if not questions:
+        raise HTTPException(status_code=404, detail="解き直す問題がありません。まずは診断や練習に挑戦しましょう！")
 
     question_list = []
     for q in questions:

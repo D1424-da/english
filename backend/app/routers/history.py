@@ -1,11 +1,77 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from datetime import datetime, timedelta, timezone, date
 
 from ..database import get_db
 from ..models import DiagnosisResult, UserAnswer, Question, Unit, Category, Layer, User
 
 router = APIRouter(prefix="/history", tags=["history"])
+
+JST = timezone(timedelta(hours=9))
+DAILY_GOAL = 10
+XP_PER_LEVEL = 300
+
+
+def _to_jst_date(dt: datetime) -> date:
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(JST).date()
+
+
+@router.get("/{user_id}/motivation")
+def get_motivation(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    answers = db.query(UserAnswer).filter(UserAnswer.user_id == user_id).all()
+
+    # XP: 正解10pt、不正解も挑戦した分2pt
+    correct = sum(1 for a in answers if a.is_correct)
+    xp = correct * 10 + (len(answers) - correct) * 2
+    level = xp // XP_PER_LEVEL + 1
+    xp_in_level = xp % XP_PER_LEVEL
+
+    # 日別の回答数（直近70日、JST基準）
+    today = datetime.now(JST).date()
+    day_counts: dict[date, int] = {}
+    for a in answers:
+        if a.answered_at is None:
+            continue
+        d = _to_jst_date(a.answered_at)
+        day_counts[d] = day_counts.get(d, 0) + 1
+
+    # 連続学習日数（今日まだ解いていなければ昨日から数える）
+    streak = 0
+    anchor = today if today in day_counts else today - timedelta(days=1)
+    d = anchor
+    while d in day_counts:
+        streak += 1
+        d -= timedelta(days=1)
+
+    activity = []
+    for i in range(69, -1, -1):
+        d = today - timedelta(days=i)
+        activity.append({"date": d.isoformat(), "count": day_counts.get(d, 0)})
+
+    # 直近の最後の回答が不正解のままの問題数（解き直し対象）
+    latest: dict[int, UserAnswer] = {}
+    for a in sorted(answers, key=lambda x: x.answered_at or datetime.min):
+        latest[a.question_id] = a
+    mistake_count = sum(1 for a in latest.values() if not a.is_correct)
+
+    return {
+        "streak": streak,
+        "today_count": day_counts.get(today, 0),
+        "daily_goal": DAILY_GOAL,
+        "xp": xp,
+        "level": level,
+        "xp_in_level": xp_in_level,
+        "xp_per_level": XP_PER_LEVEL,
+        "mistake_count": mistake_count,
+        "activity": activity,
+    }
 
 
 @router.get("/{user_id}/sessions")
