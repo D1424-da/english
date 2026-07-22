@@ -5,6 +5,7 @@ from sqlalchemy import func
 
 from ..models import Question, Choice, UserAnswer, DiagnosisResult, Unit, Category, Layer, User
 from ..schemas import UnitScore
+from ..study_guides import get_study_points
 
 WEAK_THRESHOLD = 0.6
 
@@ -42,9 +43,14 @@ def start_weak_practice(db: Session, user_id: int, unit_codes: list[str]) -> tup
 
     unit_ids = [u.id for u in db.query(Unit).filter(Unit.code.in_(unit_codes)).all()]
 
+    user = db.query(User).filter(User.id == user_id).first()
+    max_diff = 3
+    if user and user.grade:
+        max_diff = GRADE_MAX_DIFFICULTY.get(user.grade, 3)
+
     questions = (
         db.query(Question)
-        .filter(Question.unit_id.in_(unit_ids))
+        .filter(Question.unit_id.in_(unit_ids), Question.difficulty <= max_diff)
         .order_by(func.random())
         .all()
     )
@@ -129,6 +135,7 @@ def calculate_diagnosis(db: Session, user_id: int, session_id: str) -> dict:
             correct=stats["correct"],
             score=round(score * 100, 1),
             is_weak=is_weak,
+            study_points=get_study_points(stats["unit_code"]) if is_weak else [],
         )
         unit_scores.append(us)
         if is_weak:

@@ -93,6 +93,7 @@ class UnitScore(BaseModel):
     correct: int
     score: float
     is_weak: bool
+    study_points: list[str] = []
 
 
 class DiagnosisResultResponse(BaseModel):

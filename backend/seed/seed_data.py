@@ -1553,4 +1553,6 @@ if __name__ == "__main__":
     seed_reading()
     from seed.seed_junior import seed_junior
     seed_junior()
+    from seed.seed_extra import seed_extra
+    seed_extra()
     fix_misplaced_questions()

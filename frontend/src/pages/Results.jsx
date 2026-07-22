@@ -51,17 +51,34 @@ export default function Results({ result, userId, onBack, onDashboard, onStartPr
             弱点単元（正答率 60% 未満）
           </h3>
           {weak_units.map((unit, i) => (
-            <div key={i} className="weak-item">
-              <div>
-                <strong>{unit.unit_name}</strong>
-                <br />
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
-                  {unit.layer_name} &gt; {unit.category_name}
+            <div key={i} style={{ borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 12 }}>
+              <div className="weak-item" style={{ border: 'none', padding: 0, marginBottom: 8 }}>
+                <div>
+                  <strong>{unit.unit_name}</strong>
+                  <br />
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
+                    {unit.layer_name} &gt; {unit.category_name}
+                  </span>
+                </div>
+                <span style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '1.1rem' }}>
+                  {unit.score}%
                 </span>
               </div>
-              <span style={{ fontWeight: 700, color: 'var(--danger)', fontSize: '1.1rem' }}>
-                {unit.score}%
-              </span>
+              {unit.study_points && unit.study_points.length > 0 && (
+                <div style={{
+                  background: 'rgba(102,126,234,0.06)', borderRadius: 8,
+                  padding: '10px 14px', fontSize: '0.88rem', lineHeight: 1.7,
+                }}>
+                  <p style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 4 }}>
+                    克服のための勉強法
+                  </p>
+                  <ul style={{ paddingLeft: 18, margin: 0 }}>
+                    {unit.study_points.map((point, j) => (
+                      <li key={j} style={{ marginBottom: 2 }}>{point}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           ))}
           <button
