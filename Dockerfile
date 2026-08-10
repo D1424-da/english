@@ -29,4 +29,4 @@ ENV DEBUG=false
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python -m seed.seed_data && gunicorn main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120"]
+CMD ["sh", "-c", "python -m seed.seed_data || echo 'WARNING: seeding failed (database unreachable?) - starting server anyway'; gunicorn main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120"]

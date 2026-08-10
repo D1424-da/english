@@ -22,29 +22,33 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
 
-inspector = inspect(engine)
-if "users" in inspector.get_table_names():
-    columns = [col["name"] for col in inspector.get_columns("users")]
-    if "password_hash" not in columns:
+    inspector = inspect(engine)
+    if "users" in inspector.get_table_names():
+        columns = [col["name"] for col in inspector.get_columns("users")]
+        if "password_hash" not in columns:
+            try:
+                with engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)"))
+                logger.info("Added password_hash column to users table")
+            except Exception:
+                logger.debug("password_hash column already added by another worker")
+
+    if engine.dialect.name == "postgresql":
+        RLS_TABLES = ["users", "layers", "categories", "units",
+                      "questions", "choices", "user_answers", "diagnosis_results"]
         try:
             with engine.begin() as conn:
-                conn.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)"))
-            logger.info("Added password_hash column to users table")
+                for table in RLS_TABLES:
+                    conn.execute(text(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY"))
+            logger.info("Row-Level Security enabled on all tables")
         except Exception:
-            logger.debug("password_hash column already added by another worker")
-
-if engine.dialect.name == "postgresql":
-    RLS_TABLES = ["users", "layers", "categories", "units",
-                  "questions", "choices", "user_answers", "diagnosis_results"]
-    try:
-        with engine.begin() as conn:
-            for table in RLS_TABLES:
-                conn.execute(text(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY"))
-        logger.info("Row-Level Security enabled on all tables")
-    except Exception:
-        logger.debug("RLS already enabled or not applicable")
+            logger.debug("RLS already enabled or not applicable")
+except Exception as e:
+    # DBに接続できなくてもサーバー自体は起動させる（/api/health で原因を確認できる）
+    logger.error(f"Database unreachable at startup: {e}")
 
 app = FastAPI(
     title="English Diagnosis API",
