@@ -11,6 +11,7 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
   const [error, setError] = useState('')
   const [registered, setRegistered] = useState(!!userId)
   const [motivation, setMotivation] = useState(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     if (registered && userId) {
@@ -153,8 +154,17 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
                   <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
                     パスワード
                   </label>
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                  <input type={showPassword ? 'text' : 'password'} value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="パスワードを入力" style={inputStyle} />
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: 6, marginTop: 6,
+                    fontSize: '0.85rem', color: 'var(--text-light)', cursor: 'pointer',
+                  }}>
+                    <input type="checkbox" checked={showPassword}
+                      onChange={(e) => setShowPassword(e.target.checked)} />
+                    パスワードを表示
+                  </label>
                 </div>
                 {error && <p style={{ color: 'var(--danger)', marginBottom: 12 }}>{error}</p>}
                 <button type="submit" className="btn btn-primary" style={{ width: '100%' }}
@@ -185,8 +195,17 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
                   <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
                     パスワード
                   </label>
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                  <input type={showPassword ? 'text' : 'password'} value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="4文字以上" style={inputStyle} />
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: 6, marginTop: 6,
+                    fontSize: '0.85rem', color: 'var(--text-light)', cursor: 'pointer',
+                  }}>
+                    <input type="checkbox" checked={showPassword}
+                      onChange={(e) => setShowPassword(e.target.checked)} />
+                    パスワードを表示
+                  </label>
                 </div>
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
@@ -228,36 +247,36 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
       ) : (
         <>
           {motivation && (
-            <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center', marginBottom: 16 }}>
+            <div className="card" style={{ padding: '14px 20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center', marginBottom: 10 }}>
                 <div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 700 }}>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 700 }}>
                     {motivation.streak > 0 ? '\u{1F525}' : '\u{1F331}'} {motivation.streak}日
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>連続学習</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>連続学習</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--primary)' }}>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--primary)' }}>
                     Lv.{motivation.level}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>
                     {motivation.xp} XP
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 700, color: motivation.today_count >= motivation.daily_goal ? 'var(--success)' : 'var(--text)' }}>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 700, color: motivation.today_count >= motivation.daily_goal ? 'var(--success)' : 'var(--text)' }}>
                     {motivation.today_count}/{motivation.daily_goal}問
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>今日の目標</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>今日の目標</div>
                 </div>
               </div>
-              <div className="progress-bar" style={{ marginBottom: 6 }}>
+              <div className="progress-bar" style={{ marginBottom: 6, height: 6 }}>
                 <div className="fill" style={{
                   width: `${Math.min(motivation.today_count / motivation.daily_goal * 100, 100)}%`,
                   background: motivation.today_count >= motivation.daily_goal ? 'var(--success)' : 'var(--primary)',
                 }} />
               </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-light)', textAlign: 'center', margin: 0 }}>
                 {motivation.today_count >= motivation.daily_goal
                   ? '\u{1F389} 今日の目標達成！すばらしい！'
                   : `今日はあと${motivation.daily_goal - motivation.today_count}問で目標達成！`}

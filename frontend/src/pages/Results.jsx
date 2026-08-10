@@ -70,19 +70,19 @@ export default function Results({ result, userId, onBack, onDashboard, onStartPr
                 </span>
               </div>
               {unit.study_points && unit.study_points.length > 0 && (
-                <div style={{
+                <details style={{
                   background: 'rgba(102,126,234,0.06)', borderRadius: 8,
                   padding: '10px 14px', fontSize: '0.88rem', lineHeight: 1.7,
                 }}>
-                  <p style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 4 }}>
-                    克服のための勉強法
-                  </p>
-                  <ul style={{ paddingLeft: 18, margin: 0 }}>
+                  <summary style={{ fontWeight: 700, color: 'var(--primary)', cursor: 'pointer' }}>
+                    克服のための勉強法を見る
+                  </summary>
+                  <ul style={{ paddingLeft: 18, margin: '8px 0 0' }}>
                     {unit.study_points.map((point, j) => (
                       <li key={j} style={{ marginBottom: 2 }}>{point}</li>
                     ))}
                   </ul>
-                </div>
+                </details>
               )}
             </div>
           ))}
@@ -103,7 +103,7 @@ export default function Results({ result, userId, onBack, onDashboard, onStartPr
           <div key={i} className="unit-bar">
             <span className="name" title={unit.unit_name}>{unit.unit_name}</span>
             <div className="bar">
-              <div className="fill" style={{ width: `${unit.score}%`, background: barColor(unit.score) }} />
+              <div className="fill" style={{ width: `${Math.max(unit.score, 3)}%`, background: barColor(unit.score) }} />
             </div>
             <span className="pct" style={{ color: barColor(unit.score) }}>{unit.score}%</span>
           </div>

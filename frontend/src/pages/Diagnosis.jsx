@@ -54,10 +54,23 @@ export default function Diagnosis({ diagnosisData, userId, onComplete, onBack })
     return ''
   }
 
+  const choiceMark = (choice) => {
+    if (!answered) return null
+    if (choice.id === answerResult?.correct_choice_id) return '○'
+    if (choice.id === selectedId && !answerResult?.is_correct) return '✕'
+    return null
+  }
+
+  const handleBack = () => {
+    if (window.confirm('診断を中断してホームに戻りますか？\n途中でやめると今回の結果は表示されません。')) {
+      onBack()
+    }
+  }
+
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <button className="btn btn-secondary" onClick={onBack}
+        <button className="btn btn-secondary" onClick={handleBack}
           style={{ padding: '6px 16px', fontSize: '0.85rem' }}>
           戻る
         </button>
@@ -90,6 +103,9 @@ export default function Diagnosis({ diagnosisData, userId, onComplete, onBack })
             onClick={() => handleSelect(choice.id)}
             disabled={answered}
           >
+            {choiceMark(choice) && (
+              <span style={{ fontWeight: 700, marginRight: 8 }}>{choiceMark(choice)}</span>
+            )}
             {choice.choice_text}
           </button>
         ))}
@@ -106,6 +122,11 @@ export default function Diagnosis({ diagnosisData, userId, onComplete, onBack })
             }}>
               {answerResult.is_correct ? '正解！' : '不正解'}
             </p>
+            {!answerResult.is_correct && (
+              <p style={{ fontWeight: 700, marginBottom: 8 }}>
+                正解：{question.choices.find((c) => c.id === answerResult.correct_choice_id)?.choice_text}
+              </p>
+            )}
             {answerResult.explanation && (
               <p style={{ fontSize: '0.95rem', lineHeight: 1.7 }}>
                 {answerResult.explanation}

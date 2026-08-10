@@ -78,23 +78,32 @@ export default function Dashboard({ userId, onStartDiagnosis, onBack }) {
       {motivation && (
         <div className="card">
           <h3 style={{ marginBottom: 12 }}>学習カレンダー（直近10週間）</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gridAutoFlow: 'column', gridTemplateRows: 'repeat(7, 1fr)', gap: 3 }}>
-            {motivation.activity.map((day, i) => {
-              const c = day.count
-              const bg = c === 0 ? 'var(--border)'
-                : c < 5 ? 'rgba(102,126,234,0.35)'
-                : c < 10 ? 'rgba(102,126,234,0.65)'
-                : 'var(--primary)'
-              return (
-                <div key={i} title={`${day.date}: ${c}問`} style={{
-                  aspectRatio: '1', borderRadius: 3, background: bg,
-                }} />
-              )
-            })}
-          </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: 8, textAlign: 'right' }}>
-            色が濃いほどたくさん学習した日
-          </p>
+          {motivation.activity.every((d) => d.count === 0) ? (
+            <p style={{ color: 'var(--text-light)', textAlign: 'center', padding: '16px 0' }}>
+              {'\u{1F331}'} 今日から学習の記録が始まります！<br />
+              問題を解くと、この場所に学習した日が色づいていきます。
+            </p>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gridAutoFlow: 'column', gridTemplateRows: 'repeat(7, 1fr)', gap: 3 }}>
+                {motivation.activity.map((day, i) => {
+                  const c = day.count
+                  const bg = c === 0 ? 'var(--border)'
+                    : c < 5 ? 'rgba(102,126,234,0.35)'
+                    : c < 10 ? 'rgba(102,126,234,0.65)'
+                    : 'var(--primary)'
+                  return (
+                    <div key={i} title={`${day.date}: ${c}問`} style={{
+                      aspectRatio: '1', borderRadius: 3, background: bg,
+                    }} />
+                  )
+                })}
+              </div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: 8, textAlign: 'right' }}>
+                色が濃いほどたくさん学習した日
+              </p>
+            </>
+          )}
         </div>
       )}
 
@@ -163,7 +172,7 @@ export default function Dashboard({ userId, onStartDiagnosis, onBack }) {
             <div key={i} className="unit-bar">
               <span className="name" title={unit.unit_name}>{unit.unit_name}</span>
               <div className="bar">
-                <div className="fill" style={{ width: `${unit.score}%`, background: barColor(unit.score) }} />
+                <div className="fill" style={{ width: `${Math.max(unit.score, 3)}%`, background: barColor(unit.score) }} />
               </div>
               <span className="pct" style={{ color: barColor(unit.score) }}>{unit.score}%</span>
             </div>
