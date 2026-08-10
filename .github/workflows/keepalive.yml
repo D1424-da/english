@@ -1,0 +1,33 @@
+name: Keepalive
+
+# Supabase無料プランは約1週間DBアクセスがないと自動一時停止される。
+# /api/health はDBに SELECT 1 を発行するため、定期的に叩くことで
+# 利用実績が発生し、自動停止を防げる。
+# （Render無料プランのスリープからも起こすため、タイムアウトは長めに設定）
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # 6時間ごと（1日4回）
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          URL="${{ vars.APP_URL || 'https://english-diagnosis.onrender.com' }}/api/health"
+          echo "Pinging $URL"
+          # Renderのコールドスタート（〜1分）を考慮してリトライ
+          for i in 1 2 3; do
+            RESPONSE=$(curl -sS --max-time 120 "$URL") && break
+            echo "Attempt $i failed, retrying in 30s..."
+            sleep 30
+          done
+          echo "Response: $RESPONSE"
+          if echo "$RESPONSE" | grep -q '"database":"ok"'; then
+            echo "Database is reachable."
+          else
+            echo "::error::Database is NOT reachable. Supabase project may be paused - check https://supabase.com/dashboard"
+            exit 1
+          fi
