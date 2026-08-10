@@ -371,7 +371,7 @@ QUESTIONS = [
      ]},
     {"unit_id": 9, "difficulty": 1,
      "question_text": "空所に入る最も適切な語句を選びなさい。\n\n「I ___ dinner when the phone rang.」",
-     "explanation": "電話が鳴った（過去の一時点）とき、夕食を食べている最中だったので、過去進行形 was cooking を使います。",
+     "explanation": "電話が鳴った（過去の一時点）とき、夕食を作っている最中だったので、過去進行形 was cooking を使います。",
      "choices": [
          {"text": "cook", "correct": False, "order": 1},
          {"text": "cooked", "correct": False, "order": 2},
@@ -408,11 +408,11 @@ QUESTIONS = [
      ]},
     {"unit_id": 10, "difficulty": 1,
      "question_text": "空所に入る最も適切な語句を選びなさい。\n\n「The train ___ at 9:00 tomorrow.」（電車は明日9時に出発する）",
-     "explanation": "時刻表やスケジュールなど確定した未来の予定は現在形で表せます。",
+     "explanation": "時刻表やスケジュールなど確定した未来の予定は現在形で表せます。主語が三人称単数なので leaves です。",
      "choices": [
          {"text": "leaves", "correct": True, "order": 1},
-         {"text": "will leave", "correct": False, "order": 2},
-         {"text": "is going to leave", "correct": False, "order": 3},
+         {"text": "leave", "correct": False, "order": 2},
+         {"text": "leaving", "correct": False, "order": 3},
          {"text": "left", "correct": False, "order": 4},
      ]},
     # =====================================================================
@@ -480,12 +480,12 @@ QUESTIONS = [
     # --- unit 13: 助動詞の基本 ---
     {"unit_id": 13, "difficulty": 1,
      "question_text": "空所に入る最も適切な語を選びなさい。\n\n「You ___ not park here.」（ここに駐車してはいけない）",
-     "explanation": "「～してはいけない」という禁止は must not で表します。",
+     "explanation": "「～してはいけない」という強い禁止は must not で表します。should not は「～しない方がよい」という助言です。",
      "choices": [
-         {"text": "can", "correct": False, "order": 1},
+         {"text": "are", "correct": False, "order": 1},
          {"text": "must", "correct": True, "order": 2},
          {"text": "should", "correct": False, "order": 3},
-         {"text": "may", "correct": False, "order": 4},
+         {"text": "does", "correct": False, "order": 4},
      ]},
     {"unit_id": 13, "difficulty": 1,
      "question_text": "空所に入る最も適切な語を選びなさい。\n\n「___ I use your phone?」（電話を使ってもいいですか？）",
@@ -526,10 +526,10 @@ QUESTIONS = [
      ]},
     {"unit_id": 14, "difficulty": 3,
      "question_text": "空所に入る最も適切な語句を選びなさい。\n\n「He ___ not have done such a thing.」（そんなことをしたはずがない）",
-     "explanation": "「～したはずがない」は cannot have + 過去分詞で表します。過去の行為に対する強い否定の推量です。",
+     "explanation": "「～したはずがない」は cannot have + 過去分詞で表します。may not have done は「～しなかったかもしれない」で意味が異なります。",
      "choices": [
          {"text": "must", "correct": False, "order": 1},
-         {"text": "could", "correct": False, "order": 2},
+         {"text": "may", "correct": False, "order": 2},
          {"text": "can", "correct": True, "order": 3},
          {"text": "would", "correct": False, "order": 4},
      ]},
@@ -1514,6 +1514,62 @@ def seed():
         db.close()
 
 
+# ファクトチェックで見つかった既存問題の修正（本番DBにも適用される）
+CONTENT_FIXES = [
+    {
+        "question_text": "空所に入る最も適切な語句を選びなさい。\n\n「I ___ dinner when the phone rang.」",
+        "explanation": "電話が鳴った（過去の一時点）とき、夕食を作っている最中だったので、過去進行形 was cooking を使います。",
+        "choice_updates": {},
+    },
+    {
+        "question_text": "空所に入る最も適切な語を選びなさい。\n\n「You ___ not park here.」（ここに駐車してはいけない）",
+        "explanation": "「～してはいけない」という強い禁止は must not で表します。should not は「～しない方がよい」という助言です。",
+        "choice_updates": {"can": "are", "may": "does"},
+    },
+    {
+        "question_text": "空所に入る最も適切な語句を選びなさい。\n\n「He ___ not have done such a thing.」（そんなことをしたはずがない）",
+        "explanation": "「～したはずがない」は cannot have + 過去分詞で表します。may not have done は「～しなかったかもしれない」で意味が異なります。",
+        "choice_updates": {"could": "may"},
+    },
+    {
+        "question_text": "空所に入る最も適切な語句を選びなさい。\n\n「The train ___ at 9:00 tomorrow.」（電車は明日9時に出発する）",
+        "explanation": "時刻表やスケジュールなど確定した未来の予定は現在形で表せます。主語が三人称単数なので leaves です。",
+        "choice_updates": {"will leave": "leave", "is going to leave": "leaving"},
+    },
+]
+
+
+def fix_question_content():
+    """二重正解・解説ミスなど、ファクトチェックで見つかった問題を既存DB上で修正する。"""
+    db = SessionLocal()
+    try:
+        fixed = 0
+        for fix in CONTENT_FIXES:
+            q = db.query(Question).filter(Question.question_text == fix["question_text"]).first()
+            if not q:
+                continue
+            changed = False
+            if fix["explanation"] and q.explanation != fix["explanation"]:
+                q.explanation = fix["explanation"]
+                changed = True
+            for old_text, new_text in fix["choice_updates"].items():
+                choice = (
+                    db.query(Choice)
+                    .filter(Choice.question_id == q.id, Choice.choice_text == old_text)
+                    .first()
+                )
+                if choice:
+                    choice.choice_text = new_text
+                    changed = True
+            if changed:
+                fixed += 1
+        if fixed:
+            db.commit()
+            print(f"Fixed content of {fixed} existing questions")
+    finally:
+        db.close()
+
+
 def fix_misplaced_questions():
     """Move 4 reading questions that were incorrectly assigned to vocabulary units."""
     db = SessionLocal()
@@ -1556,3 +1612,4 @@ if __name__ == "__main__":
     from seed.seed_extra import seed_extra
     seed_extra()
     fix_misplaced_questions()
+    fix_question_content()
