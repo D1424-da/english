@@ -265,7 +265,9 @@ export default function Home({ userId, setUserId, onLogout, onStartDiagnosis, on
                 </div>
                 <div>
                   <div style={{ fontSize: '1.35rem', fontWeight: 700, color: motivation.today_count >= motivation.daily_goal ? 'var(--success)' : 'var(--text)' }}>
-                    {motivation.today_count}/{motivation.daily_goal}問
+                    {motivation.today_count > motivation.daily_goal
+                      ? `${motivation.daily_goal}/${motivation.daily_goal}問 +${motivation.today_count - motivation.daily_goal}`
+                      : `${motivation.today_count}/${motivation.daily_goal}問`}
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>今日の目標</div>
                 </div>

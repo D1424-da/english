@@ -4,6 +4,9 @@ import { startWeakPractice } from '../api'
 export default function Results({ result, userId, onBack, onDashboard, onStartPractice, onPractice }) {
   const { overall_score, correct_count, total_questions, unit_scores, weak_units, recommendations } = result
   const [loading, setLoading] = useState(false)
+  const [showAllWeak, setShowAllWeak] = useState(false)
+
+  const visibleWeak = showAllWeak ? weak_units : weak_units.slice(0, 3)
 
   const scoreClass = overall_score >= 80 ? 'high' : overall_score >= 50 ? 'mid' : 'low'
 
@@ -55,7 +58,7 @@ export default function Results({ result, userId, onBack, onDashboard, onStartPr
           <h3 style={{ marginBottom: 16, color: 'var(--danger)' }}>
             弱点単元（正答率 60% 未満）
           </h3>
-          {weak_units.map((unit, i) => (
+          {visibleWeak.map((unit, i) => (
             <div key={i} style={{ borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 12 }}>
               <div className="weak-item" style={{ border: 'none', padding: 0, marginBottom: 8 }}>
                 <div>
@@ -70,12 +73,12 @@ export default function Results({ result, userId, onBack, onDashboard, onStartPr
                 </span>
               </div>
               {unit.study_points && unit.study_points.length > 0 && (
-                <details style={{
+                <details open={i < 3} style={{
                   background: 'rgba(102,126,234,0.06)', borderRadius: 8,
                   padding: '10px 14px', fontSize: '0.88rem', lineHeight: 1.7,
                 }}>
                   <summary style={{ fontWeight: 700, color: 'var(--primary)', cursor: 'pointer' }}>
-                    克服のための勉強法を見る
+                    克服のための勉強法
                   </summary>
                   <ul style={{ paddingLeft: 18, margin: '8px 0 0' }}>
                     {unit.study_points.map((point, j) => (
@@ -86,6 +89,18 @@ export default function Results({ result, userId, onBack, onDashboard, onStartPr
               )}
             </div>
           ))}
+          {weak_units.length > 3 && (
+            <button
+              onClick={() => setShowAllWeak(!showAllWeak)}
+              style={{
+                width: '100%', background: 'none', border: 'none',
+                color: 'var(--primary)', fontWeight: 600, cursor: 'pointer',
+                padding: '8px 0', fontSize: '0.95rem',
+              }}
+            >
+              {showAllWeak ? '閉じる' : `他${weak_units.length - 3}件の弱点を見る`}
+            </button>
+          )}
           <button
             className="btn btn-primary"
             style={{ width: '100%', marginTop: 16, background: 'var(--danger)' }}

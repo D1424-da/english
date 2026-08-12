@@ -85,19 +85,35 @@ export default function Dashboard({ userId, onStartDiagnosis, onBack }) {
             </p>
           ) : (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gridAutoFlow: 'column', gridTemplateRows: 'repeat(7, 1fr)', gap: 3 }}>
-                {motivation.activity.map((day, i) => {
-                  const c = day.count
-                  const bg = c === 0 ? 'var(--border)'
-                    : c < 5 ? 'rgba(102,126,234,0.35)'
-                    : c < 10 ? 'rgba(102,126,234,0.65)'
-                    : 'var(--primary)'
-                  return (
-                    <div key={i} title={`${day.date}: ${c}問`} style={{
-                      aspectRatio: '1', borderRadius: 3, background: bg,
-                    }} />
-                  )
-                })}
+              <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{
+                  display: 'grid', gridTemplateRows: 'repeat(7, 1fr)', gap: 3,
+                  fontSize: '0.65rem', color: 'var(--text-light)', textAlign: 'center',
+                }}>
+                  {(() => {
+                    const dayNames = ['日', '月', '火', '水', '木', '金', '土']
+                    const first = new Date(motivation.activity[0].date + 'T00:00:00')
+                    return Array.from({ length: 7 }, (_, r) => (
+                      <span key={r} style={{ display: 'flex', alignItems: 'center' }}>
+                        {r % 2 === 1 ? dayNames[(first.getDay() + r) % 7] : ''}
+                      </span>
+                    ))
+                  })()}
+                </div>
+                <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gridAutoFlow: 'column', gridTemplateRows: 'repeat(7, 1fr)', gap: 3 }}>
+                  {motivation.activity.map((day, i) => {
+                    const c = day.count
+                    const bg = c === 0 ? 'var(--border)'
+                      : c < 5 ? 'rgba(102,126,234,0.35)'
+                      : c < 10 ? 'rgba(102,126,234,0.65)'
+                      : 'var(--primary)'
+                    return (
+                      <div key={i} title={`${day.date}: ${c}問`} style={{
+                        aspectRatio: '1', borderRadius: 3, background: bg,
+                      }} />
+                    )
+                  })}
+                </div>
               </div>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: 8, textAlign: 'right' }}>
                 色が濃いほどたくさん学習した日
